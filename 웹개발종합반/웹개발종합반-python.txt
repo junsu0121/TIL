@@ -1,0 +1,248 @@
+Python 자주 쓰는 코드
+
+-python기초문법
+
+
+a_dict = {‘name’:’bob’,’age’:20}
+a_dict[‘height’] = 170    —> 내용추가
+
+
+———————————————————
+-for문
+for row in rows:
+
+———————————————————
+
+-requests 이용(ajax역할)
+Requests 패키지 설치 후
+
+import requests
+
+r = requests.get('url')
+rjson = r.json()
+
+rows = rjson[‘realcityair’][‘row’]
+
+for row in rows:
+	print(row[‘MSRSTE_NM’],[‘IDEX_MVL’])
+
+———————————————————
+
+-크롤링 기초
+
+bs4 패키지 설치
+
+import requests
+from bs4 import BeautifulSoup
+
+headers = {'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36'}
+data = requests.get('https://movie.naver.com/movie/sdb/rank/rmovie.naver?sel=pnt&date=20210829',headers=headers)
+
+soup = BeautifulSoup(data.text, 'html.parser')
+
+
+를 상단에 넣어서 사용
+
+-select//select_one 사용법
+
+rows = soup.select('검사해서 selector복사//앞쪽 공통 복붙')
+Ex)rows = soup.select('#old_content > table > tbody > tr')
+
+(반목문 돌리기)
+
+for row in rows:
+	name = row.select_one(‘뒷쪽 공통 복붙’)
+		print(name.text)[‘필요한부분잇으면’]
+
+Ex)for row in rows:
+    name = row.select_one('td.title > div > a')
+    if name is not None:      ——————>빈칸제거
+
+Etc)
+text[0:2]  —>앞에 두글자 끊기
+strip() —> 여백삭제
+
+———————————————————
+
+-mongoDB Atlas 이용하기
+
+pymongo, dnspython 패키지 설치
+
+from pymongo import MongoClient
+
+client = MongoClient('mongodb+srv://아이디:비밀번호@cluster0.6mof6.mongodb.net/클러스터0?retryWrites=true&w=majority')
+
+client = MongoClient('mongodb+srv://JunsuLim:BIN2001kr!!~@cluster0.6mof6.mongodb.net/Cluster0?retryWrites=true&w=majority')
+
+db = client.폴더이름
+를 상단에 넣어 사용.
+
+(Data 저장)
+doc = {…} ——> 넣을 데이터
+Ex) doc = {
+‘Title’:title,
+‘Rank’:rank,
+‘Star’:star
+}
+
+
+db.콜렉션명.insert_one(doc)
+Or
+db.콜렉션명.insert_one({…})
+doc = [{},{}]            —3개
+
+db.cafe.insert_many(doc)
+
+
+(한 개 찾기 - 예시) user = db.users.find_one({'name':'bobby'})
+
+(여러개 찾기 - 예시 ( _id 값은 제외하고 출력)) all_users = list(db.users.find({},{'_id':False}))
+
+(바꾸기 - 예시) db.users.update_one({'name':'bobby'},{'$set':{'age':19}})
+
+(지우기 - 예시) db.users.delete_one({'name':'bobby'})
+
+———————————————————
+-flask 서버 만들기
+
+프로젝트폴더 만들기 -> 프로젝트 폴더 안에 새로만들기-경로로 생성- static(이미지,css),templates(html) 만들기
+-> app.py 만들기 -> Flask 패키지 설치 ->
+
+from flask import Flask, render_template, request, jsonify
+app = Flask(__name__)
+
+Pymongo 넣기
+
+@app.route('/')
+def home():
+    return render_template('index.html’)               -> index.html불러옴
+
+@app.route('/mypage')
+def mypage():
+    return 'this is my page'              /추가가능
+
+if __name__ == '__main__':
+    app.run('0.0.0.0', port=7777, debug=True)
+를 상단에 추가하여 사용 
+
+———————————————————
+Post 방법 (주문을 저장) 
+
+(클라(ajax)-> 서버(flask) : 데이터를 보냄
+서버(flask)->클라(ajax) : 메세지를 보냄(주문완료!))
+
+1)클라이언트와 서버 연결
+(Post 요청 api 코드)(서버코드)
+@app.route('/test', methods=['POST'])
+def test_post():
+	title_receive = request.form[‘sample_give’]
+	print(sample_receive)
+	return jsonify({'msg': ‘연결완료’})
+
+(Post 요청 확인 ajax코드)(클라이언트 코드)
+$.ajax({
+type: "POST",
+url: "/test",
+data: { sample_give:’데이터전송’ },
+success: function(response){
+console.log(response)
+}
+})
+
+2)서버 만들기
+@app.route("/mars", methods=["POST"])
+def web_mars_post():
+    name_receive = request.form['name_give']
+    address_receive = request.form['address_give']
+    size_receive = request.form['size_give']
+    doc = {
+        'name':name_receive,
+        'address':address_receive,
+        'size':size_receive
+    }
+    db.mars.insert_one(doc)
+
+    return jsonify({'msg': '주문 완료!'})
+
+3)클라이언트 만들기
+function save_order() {
+    let name = $('#name').val()
+    let address = $('#address').val()
+    let size = $('#size').val()
+
+    $.ajax({
+        type: 'POST',
+        url: '/mars',
+        data: { name_give: name, address_give: address, size_give: size},
+        success: function (response) {
+            alert(response['msg'])
+            window.location.reload()
+        }
+    });
+}
+
+4)완성 확인하기
+db에 잘 들어갔나 확인
+
+———————————————————
+Get 방식 (저장된 주문을 보여주는 것)
+
+(클라(ajax)-> 서버(flask) : 없음
+서버(flask)->클라(ajax) : 전체 주문 보여주기)
+
+1)클라이언트와 서버 확인
+(get 요청 api 코드)(서버 코드)
+@app.route('/test', methods=['GET'])
+def test_get():
+	sample_receive = request.args.get('sample_give')
+	print(title_receive)
+	return jsonify({'result':'success', 'msg': '이 요청은 GET!'})
+
+(Get 요청 확인 ajax코드)(클라이언트 코드)
+$.ajax({
+type: "GET",
+url: "/test?title_give=봄날은간다",
+data: {},
+success: function(response){
+console.log(response)
+}
+})
+
+2)서버만들기
+@app.route("/mars", methods=["GET"])
+def web_mars_get():
+    order_list = list(db.mars.find({}, {'_id': False}))
+    return jsonify({'orders': order_list})
+
+3)클라이언트 만들기 (응답 받아서 for 문으로)
+function show_order() {
+    $.ajax({
+        type: 'GET',
+        url: '/mars',
+        data: {},
+        success: function (response) {
+            let rows = response['orders']
+            for (let i = 0; i < rows.length; i++) {
+                let name = rows[i]['name']
+                let address = rows[i]['address']
+                let size = rows[i]['size']
+                let temp_html = `<tr>
+                                    <td>${name}</td>
+                                    <td>${address}</td>
+                                    <td>${size}</td>
+                                </tr>`
+                $('#order-box').append(temp_html)
+            }
+        }
+    });
+}
+————————————————————————————-
+-리스트 개수 세기
+bucket_list = list(db.buckets.find({}, {'_id': False}))
+
+count = len(bucket_list) + 1
+————————————————————
+-client에서 받아온 숫자 
+ 문자가 아닌 수로 받아올려면
+int()
+Ex) int(num_receive)
