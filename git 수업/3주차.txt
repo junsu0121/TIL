@@ -1,0 +1,24 @@
+-PR(Pull Request)
+내 작업내역을 바로 merge 하지 않고, 내 branch를 merge 해달라고 요청하는 것
+PR 완료 후 branch 삭제하기
+
+-commit 고치기(amend)
+나만 작업하는 branch 하나에만 적용한다.
+
+-amend
+최신의 commit을 수정하는 것
+
+-revert
+어떤 내용을 되돌렸는지 새로운 commit 남기는 것
+
+-reset
+Commit 했던 작업내역 리셋
+
+-stash
+잠시 다른 branch 넘어갈 때 임시 저장하기
+
+-.gitignore
+설정파일이나 비밀번호와 같은 파일을 없는 것처럼 무시하는 설정
+
+-readme.md
+프로젝트 소개글 작성
